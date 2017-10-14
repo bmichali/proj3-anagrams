@@ -74,7 +74,7 @@ def success():
 #######################
 
 
-@app.route("/_check", methods=["POST"])
+@app.route("/_check")
 def check():
     """
     User has submitted the form with a word ('attempt')
@@ -87,35 +87,51 @@ def check():
     app.logger.debug("Entering check")
 
     # The data we need, from form and from cookie
-    text = flask.request.form["attempt"]
+    text = flask.request.args.get("text", type=str)
     jumble = flask.session["jumble"]
     matches = flask.session.get("matches", [])  # Default to empty list
 
     # Is it good?
     in_jumble = LetterBag(jumble).contains(text)
     matched = WORDS.has(text)
+    rslt = {"success": "", "word_found": "", "already_found": "", "not_in_list": "",
+            "cant_be_made": "", "matches": matches}
 
     # Respond appropriately
     if matched and in_jumble and not (text in matches):
         # Cool, they found a new word
         matches.append(text)
         flask.session["matches"] = matches
+        app.logger.debug("JSON: Word Found")
+        rslt["word_found"] = text
+
     elif text in matches:
-        flask.flash("You already found {}".format(text))
+        # flask.flash("You already found {}".format(text))
+        app.logger.debug("JSON: Already Found")
+        rslt["already_found"] = text
+
     elif not matched:
-        flask.flash("{} isn't in the list of words".format(text))
+        # flask.flash("{} isn't in the list of words".format(text))
+        app.logger.debug("JSON: Not In List")
+        rslt["not_in_list"] = text
+
     elif not in_jumble:
-        flask.flash(
-            '"{}" can\'t be made from the letters {}'.format(text, jumble))
+        # flask.flash(
+        #     '"{}" can\'t be made from the letters {}'.format(text, jumble))
+        app.logger.debug("JSON: Can't Be Made")
+        rslt["cant_be_made"] = text
     else:
         app.logger.debug("This case shouldn't happen!")
         assert False  # Raises AssertionError
 
     # Choose page:  Solved enough, or keep going?
     if len(matches) >= flask.session["target_count"]:
-       return flask.redirect(flask.url_for("success"))
+        app.logger.debug("JSON: Success")
+        rslt["success"] = "success"
+        return flask.jsonify(result=rslt)
+
     else:
-       return flask.redirect(flask.url_for("keep_going"))
+        return flask.jsonify(result=rslt)
 
 ###############
 # AJAX request handlers
@@ -131,7 +147,6 @@ def example():
     app.logger.debug("Got a JSON request")
     rslt = {"key": "value"}
     return flask.jsonify(result=rslt)
-
 
 #################
 # Functions used within the templates

@@ -80,34 +80,87 @@
 <br />
 <div class="row">
   <div class="col-xs-6 text-center">
-  <form id="entry" method="POST" action="/_check">
+  <form id="entry">
     <label for="attempt">Word:</label>
     <input id="attempt" name="attempt" type="text" width="15"
       autocomplete="off"  autofocus />
-    <input type="submit" name="try" />
   </form>
 </div></div>
 
+<p id="response"> </p>
+
+<p id="results"> </p>
 <br />
 
-{% if session.matches|length is not equalto 0  %}
-<h2>You found </h2>
-<p id="results">
-  {% for match in session.matches %}
-  {{ match }} 
-  {% endfor %}
-</p>
-{% endif %}
+  <script>
+
+$("#entry").submit( function(event) {
+   event.preventDefault();
+  });
+
+$("#attempt").keyup(function(event) {
+   var txt = $("#attempt").val();  // Current content of the input field
+   var keycode = event.which;      // They key that just went up
+   var letter = String.fromCharCode(keycode);
+
+   if (! "ABCDEFGHIJKLMNOPQRSTUVWXYZ".includes(letter)) { return }
+
+   $.getJSON( "/_check", { text: txt },
+              function(data) {
+                matches = data.result.matches
+                success = data.result.success
+                found = data.result.word_found
+                already = data.result.already_found
+                not_in = data.result.not_in_list
+                cant = data.result.cant_be_made
+
+                if (success) {
+                   window.location.replace("/success");
+                }
+
+                if(matches){
+                   $("#results").html("Words Found:   " + matches);
+                }
+
+                if (found) {
+                   $("#response").html("You found a word");
+                   $("#attempt").val("");
+                }
+
+                if (already) {
+                   $("#response").html("You already found " + already);
+                }
+
+                if (not_in) {
+                   $("#response").html(not_in + " isn't in the list of words");
+                }
+
+                if (cant) {
+                   $("#response").html(cant + " can't be made from the list of letters");
+                }
+               }
+           );
+   });
+</script>
+
+<!--{% if session.matches|length is not equalto 0  %}-->
+<!--<h2>You found </h2>-->
+<!--<p id="results">-->
+  <!--{% for match in session.matches %}-->
+  <!--{{ match }}-->
+  <!--{% endfor %}-->
+<!--</p>-->
+<!--{% endif %}-->
 
 
-{% with messages = get_flashed_messages() %}
-  {% if messages %}
-    <!-- Mismatch, already found, etc. "flashed" from Python -->
-    {% for message in messages %}
-      <p class="message">{{ message }}</p>
-    {% endfor %}
-  {% endif %}
-{% endwith %}
+<!--{% with messages = get_flashed_messages() %}-->
+  <!--{% if messages %}-->
+    <!--&lt;!&ndash; Mismatch, already found, etc. "flashed" from Python &ndash;&gt;-->
+    <!--{% for message in messages %}-->
+      <!--<p class="message">{{ message }}</p>-->
+    <!--{% endfor %}-->
+  <!--{% endif %}-->
+<!--{% endwith %}-->
 
 
 
