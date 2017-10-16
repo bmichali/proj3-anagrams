@@ -51,8 +51,8 @@ def test_contains_with_caps():
     A test for seeing if caps are downcased, 
     and .contains() works with cap'd str's.
     """
-    assert LetterBag("ABCXYZ").contains("abcxyz")
-    assert LetterBag("AaBbcd").contains("aabbcd")
+    assert LetterBag("abcxyz").contains("ABCXYZ")
+    assert LetterBag("aabbcd").contains("AaBbcd")
 
 def test_simple_merge():
     bag_abbc = LetterBag("abbc")
