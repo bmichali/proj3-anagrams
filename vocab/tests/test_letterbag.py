@@ -39,6 +39,12 @@ def test_contains_basic_examples():
     assert LetterBag("abbc").contains("abbc")
     assert not LetterBag("abc").contains("abbc")
 
+def test_str_with_caps():
+    """
+    A test for seeing if caps are downcased properly.
+    """
+    assert str(LetterBag("ABCXYZ")) == "abcxyz"
+    assert str(LetterBag("AaBbcd")) == "aabbcd"
 
 def test_simple_merge():
     bag_abbc = LetterBag("abbc")
